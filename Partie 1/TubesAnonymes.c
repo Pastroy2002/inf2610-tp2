@@ -22,24 +22,24 @@ int main() {
 
         if (fork() == 0) { // P2
             close(fd1[0]);
-            int fd3[2];
-            pipe(fd3);
+            int fd2[2];
+            pipe(fd2);
 
             if (fork() == 0) { // P1
                 close(fd1[1]);
-                close(fd3[0]);
+                close(fd2[0]);
                 int textFile = open("In.txt", O_RDONLY);
                 dup2(textFile, 0);
                 close(textFile);
-                dup2(fd3[1],1);
-                close(fd3[1]);
+                dup2(fd2[1],1);
+                close(fd2[1]);
                 execlp("rev", "rev", NULL);
             }
 
-            close(fd3[1]);
+            close(fd2[1]);
             wait(NULL);
-            dup2(fd3[0], 0);
-            close(fd3[0]);
+            dup2(fd2[0], 0);
+            close(fd2[0]);
             dup2(fd1[1], 1);
             close(fd1[1]);
             execlp("rev", "rev", NULL);
