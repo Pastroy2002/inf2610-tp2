@@ -15,6 +15,36 @@ void checkStatus(int status) {
     }
 }
 
+void thirdChildActions(int* fd1, int* fd2) {
+    close(fd1[1]);
+    close(fd2[0]);
+    int textFile = open("In.txt", O_RDONLY);
+    dup2(textFile, 0);
+    close(textFile);
+    dup2(fd2[1],1);
+    close(fd2[1]);
+    execlp("rev", "rev", NULL);
+}
+
+void secondChildActions(int* fd1, int* fd2) {
+    close(fd2[1]);
+    wait(NULL);
+    dup2(fd2[0], 0);
+    close(fd2[0]);
+    dup2(fd1[1], 1);
+    close(fd1[1]);
+    execlp("rev", "rev", NULL);
+}
+
+void firstChildActions(int* fd1) {
+    close(fd1[1]);
+    while(wait(NULL) > 0);
+    
+    dup2(fd1[0], 0);
+    close(fd1[0]);
+    execlp("cmp", "cmp", "-", "In.txt", NULL);
+}
+
 int main() {
     if (fork() == 0) { // P3
         int fd1[2];
@@ -26,35 +56,18 @@ int main() {
             pipe(fd2);
 
             if (fork() == 0) { // P1
-                close(fd1[1]);
-                close(fd2[0]);
-                int textFile = open("In.txt", O_RDONLY);
-                dup2(textFile, 0);
-                close(textFile);
-                dup2(fd2[1],1);
-                close(fd2[1]);
-                execlp("rev", "rev", NULL);
+                thirdChildActions(fd1, fd2);
             }
 
-            close(fd2[1]);
-            wait(NULL);
-            dup2(fd2[0], 0);
-            close(fd2[0]);
-            dup2(fd1[1], 1);
-            close(fd1[1]);
-            execlp("rev", "rev", NULL);
+            secondChildActions(fd1, fd2);
         }
 
-        close(fd1[1]);
-        while(wait(NULL) > 0);
-        
-        dup2(fd1[0], 0);
-        close(fd1[0]);
-        execlp("cmp", "cmp", "-", "In.txt", NULL);
+        firstChildActions(fd1);
     }
 
     int status;
     while(wait(&status) > 0);
-    checkStatus(status);
+    checkStatus(status);\
+    
     return 0;
 }
