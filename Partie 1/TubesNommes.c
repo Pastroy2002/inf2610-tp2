@@ -17,38 +17,53 @@ void checkStatus(int status) {
     }
 }
 
+void thirdChildActions() {
+    int fd = open("pipe1", O_WRONLY);
+    dup2(fd, 1);
+    close(fd);
+    int textFile = open("In.txt", O_RDONLY);
+    dup2(textFile, 0);
+    close(textFile);
+    execlp("rev", "rev", NULL);
+}
+
+void secondChildActions() {
+    int fd = open("pipe1", O_RDONLY);
+    wait(NULL);
+    dup2(fd, 0);
+    close(fd);
+    fd = open("pipe2", O_WRONLY);
+    dup2(fd, 1);
+    execlp("rev", "rev", NULL);
+}
+
+void firstChildActions() {
+    int fd = open("pipe2", O_RDONLY);
+    while(wait(NULL) > 0);
+    dup2(fd, 0);
+    close(fd);
+    execlp("cmp", "cmp", "-", "In.txt", NULL);
+}
+
 int main() {
     mkfifo("pipe1", 0600);
     mkfifo("pipe2", 0600);
+
     if (fork() == 0) { // P3
         if (fork() == 0) { // P2
             if (fork() == 0) { // P1
-                int fd = open("pipe1", O_WRONLY);
-                dup2(fd, 1);
-                close(fd);
-                int textFile = open("In.txt", O_RDONLY);
-                dup2(textFile, 0);
-                close(textFile);
-                execlp("rev", "rev", NULL);
+                thirdChildActions();
             }
-            int fd = open("pipe1", O_RDONLY);
-            wait(NULL);
-            dup2(fd, 0);
-            close(fd);
-            fd = open("pipe2", O_WRONLY);
-            dup2(fd, 1);
-            execlp("rev", "rev", NULL);
+            secondChildActions();
         }
-        int fd = open("pipe2", O_RDONLY);
-        while(wait(NULL) > 0);
-        dup2(fd, 0);
-        close(fd);
-        execlp("cmp", "cmp", "-", "In.txt", NULL);
+        firstChildActions();
     }
+
     int status;
     while(wait(&status) > 0);
     checkStatus(status);
     unlink("pipe1");
     unlink("pipe2");
+
     return 0;
 }
