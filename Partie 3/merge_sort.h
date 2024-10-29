@@ -9,7 +9,8 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <time.h>
-#include <sys/time.h> 
+#include <sys/time.h>
+#include <sys/stat.h> 
 
 #define MAX_ARRAY_SIZE 1000000
 #define MAX_NUM_SIZE 1000000
