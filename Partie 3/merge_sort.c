@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     shared_data = mmap(0, sizeof(SharedData), PROT_WRITE | PROT_READ, MAP_SHARED, fd, 0);
 
 
-    mutex = sem_open(SEM_NAME, O_CREAT, 0700, 1);
+    mutex = sem_open("/merge_sort_sem", O_CREAT, 0700, 1);
     if (mutex == SEM_FAILED) {
         perror("Erreur d'initialisation du sémaphore");
         exit(1);
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     double elapsed_time = (end_time.tv_sec - start_time.tv_sec) + (end_time.tv_usec - start_time.tv_usec) / 1000000.0;
     printf("Temps d'exécution du tri parallèle : %.6f secondes\n", elapsed_time);
 
-    show_array();
+   // show_array();
     write_array_into_file();
 
 
@@ -144,6 +144,7 @@ void merge(int left, int mid, int right) {
         j++;
         k++;
     }
+    
 }
 
 void show_array(){
